@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuzuAni Reader - {{ chapter.title }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background-color: #000; }
+        .reader-container { position: relative; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; }
+        .manga-page { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .nav-overlay { position: absolute; top: 0; bottom: 0; width: 50%; cursor: pointer; }
+        .nav-prev { left: 0; } .nav-next { right: 0; }
+        .hud-element { position: absolute; background-color: rgba(0,0,0,0.7); color: white; border-radius: 20px; display: flex; align-items: center; justify-content: center; }
+        .page-counter { bottom: 20px; left: 50%; transform: translateX(-50%); padding: 5px 15px; font-size: 1rem; }
+        .close-btn { top: 20px; left: 20px; width: 40px; height: 40px; font-size: 1.2rem; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div x-data="mangaReader()" @keydown.window.arrow-left="prevPage()" @keydown.window.arrow-right="nextPage()">
+        <div class="reader-container">
+            <template x-if="totalPages > 0">
+                <img :src="currentPageUrl" class="manga-page">
+            </template>
+            <div class="nav-overlay nav-prev" @click="prevPage()"></div>
+            <div class="nav-overlay nav-next" @click="nextPage()"></div>
+            <a href="{{ url_for('main.manga_details', manga_id=chapter.manga_id) }}" class="hud-element close-btn"><i class="fas fa-times"></i></a>
+            <template x-if="totalPages > 0">
+                <div class="hud-element page-counter" x-text="`${currentPage + 1} / ${totalPages}`"></div>
+            </template>
+        </div>
+    </div>
+    <script src="//unpkg.com/alpinejs" defer></script>
+    <script>
+        function mangaReader() {
+            return {
+                pages: [ {% for page in pages %}"{{ url_for('static', filename=page.image_url) }}"{% if not loop.last %},{% endif %}{% endfor %} ],
+                currentPage: 0,
+                get totalPages() { return this.pages.length },
+                get currentPageUrl() { return this.pages[this.currentPage] },
+                nextPage() { if (this.currentPage < this.totalPages - 1) this.currentPage++ },
+                prevPage() { if (this.currentPage > 0) this.currentPage-- }
+            }
+        }
+    </script>
+</body>
+</html>

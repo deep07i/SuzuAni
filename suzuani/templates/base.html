@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuzuAni - {% if title %}{{ title }}{% else %}Your Entertainment Hub{% endif %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <style>
+        body { background-color: #0d1117; color: #c9d1d9; }
+        .horizontal-scroll { display: flex; overflow-x: auto; scrollbar-width: none; }
+        .horizontal-scroll::-webkit-scrollbar { display: none; }
+        .progress-bar-container { background-color: #4a5568; }
+        .progress-bar { background-color: #38b2ac; }
+        .player-hidden { transform: translateY(100%); }
+    </style>
+</head>
+<body class="font-sans" x-data="musicPlayer()" @play-song.window="playSongFromEvent($event)">
+      
+    <header class="bg-gray-900/80 backdrop-blur-sm fixed top-0 left-0 right-0 z-50 border-b border-gray-700">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="{{ url_for('main.index') }}" class="text-2xl font-bold text-cyan-400">SuzuAni</a>
+            <div class="flex items-center space-x-4" x-data="{ open: false }">
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('main.search') }}" class="text-gray-300 hover:text-white text-lg"><i class="fas fa-search"></i></a>
+                {% endif %}
+                <div class="relative">
+                    <button @click="open = !open" class="text-gray-300 hover:text-white text-lg"><i class="fas fa-ellipsis-v"></i></button>
+                    <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg py-1 z-50 border border-gray-700" style="display: none;">
+                        {% if current_user.is_authenticated and current_user.is_admin %}
+                            <a href="{{ url_for('admin.index') }}" class="block px-4 py-2 text-sm text-yellow-400 hover:bg-gray-700"><i class="fas fa-user-shield fa-fw mr-2"></i>Admin Panel</a>
+                            <hr class="border-gray-600 my-1">
+                        {% endif %}
+                        <a href="{{ url_for('main.about') }}" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-700">About</a>
+                        <a href="{{ url_for('main.support') }}" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-700">Support</a>
+                        {% if current_user.is_authenticated %}
+                            <a href="{{ url_for('main.logout') }}" class="block px-4 py-2 text-sm text-red-400 hover:bg-gray-700">Logout</a>
+                        {% else %}
+                             <a href="{{ url_for('main.login') }}" class="block px-4 py-2 text-sm text-cyan-400 hover:bg-gray-700">Login</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% if current_user.is_authenticated %}
+        <div class="container mx-auto px-4 flex justify-around items-center">
+            <a href="{{ url_for('main.index') }}" class="py-2 text-md font-semibold {% if request.path == url_for('main.index') %}text-cyan-400 border-b-2 border-cyan-400{% else %}text-gray-400 hover:text-white{% endif %}">Anime</a>
+            <a href="{{ url_for('main.mangas') }}" class="py-2 text-md font-semibold {% if request.path == url_for('main.mangas') %}text-cyan-400 border-b-2 border-cyan-400{% else %}text-gray-400 hover:text-white{% endif %}">Manga</a>
+            <a href="{{ url_for('main.music') }}" class="py-2 text-md font-semibold {% if request.path == url_for('main.music') %}text-cyan-400 border-b-2 border-cyan-400{% else %}text-gray-400 hover:text-white{% endif %}">Music</a>
+        </div>
+        {% endif %}
+    </header>
+
+    <main class="pt-32 pb-20">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="container mx-auto px-4 mb-4">
+                {% for category, message in messages %}
+                    <div class="p-4 rounded-lg text-white {% if category == 'danger' %}bg-red-500/80{% elif category == 'success' %}bg-green-500/80{% else %}bg-blue-500/80{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+    
+    {% if current_user.is_authenticated %}
+    <nav class="bg-gray-900/80 backdrop-blur-sm fixed bottom-0 left-0 right-0 z-50 border-t border-gray-700">
+        <div class="container mx-auto h-16 flex justify-around items-center">
+            <a href="{{ url_for('main.index') }}" class="flex flex-col items-center justify-center w-full {% if request.path.startswith('/anime') or request.path == url_for('main.index') %}text-cyan-400{% else %}text-gray-400 hover:text-cyan-400{% endif %}">
+                <i class="fas fa-home text-xl"></i><span class="text-xs mt-1">Home</span>
+            </a>
+            <a href="{{ url_for('main.history') }}" class="flex flex-col items-center justify-center w-full {% if request.path == url_for('main.history') %}text-cyan-400{% else %}text-gray-400 hover:text-cyan-400{% endif %}">
+                <i class="fas fa-heart text-xl"></i><span class="text-xs mt-1">Liked</span>
+            </a>
+            <a href="{{ url_for('main.profile') }}" class="flex flex-col items-center justify-center w-full {% if request.path == url_for('main.profile') %}text-cyan-400{% else %}text-gray-400 hover:text-cyan-400{% endif %}">
+                <i class="fas fa-user-circle text-xl"></i><span class="text-xs mt-1">Profile</span>
+            </a>
+        </div>
+    </nav>
+    {% endif %}
+
+    {% if current_user.is_authenticated %}
+    <div class="fixed bottom-16 left-0 right-0 z-40 transition-transform duration-300" 
+         :class="{ 'player-hidden': !currentSong.title }">
+        <div class="bg-gray-800 border-t border-gray-700 shadow-lg p-3">
+            <div @click="seek($event)" class="progress-bar-container h-1.5 w-full rounded-full cursor-pointer mb-2">
+                <div class="progress-bar h-full rounded-full" :style="`width: ${progress}%`"></div>
+            </div>
+            <div class="flex items-center">
+                <img :src="currentSong.cover_url" class="w-12 h-12 rounded-md object-cover mr-3">
+                <div>
+                    <p class="font-bold text-white truncate" x-text="currentSong.title"></p>
+                    <p class="text-sm text-gray-400 truncate" x-text="currentSong.artist"></p>
+                </div>
+                <div class="flex items-center ml-auto space-x-4">
+                    <button @click="prevSong()" class="text-gray-300 hover:text-white text-xl"><i class="fas fa-backward-step"></i></button>
+                    <button @click="togglePlay()" class="text-white bg-cyan-500 rounded-full w-10 h-10 flex items-center justify-center text-xl">
+                        <i :class="isPlaying ? 'fas fa-pause' : 'fas fa-play'"></i>
+                    </button>
+                    <button @click="nextSong()" class="text-gray-300 hover:text-white text-xl"><i class="fas fa-forward-step"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <script src="//unpkg.com/alpinejs" defer></script>
+    <script>
+        function musicPlayer() {
+            return {
+                playlist: {{ playlist_json|safe }},
+                currentSongIndex: -1,
+                isPlaying: false,
+                progress: 0,
+                audio: new Audio(),
+                get currentSong() { return this.playlist[this.currentSongIndex] || {}; },
+                init() {
+                    this.audio.addEventListener('timeupdate', () => { if (this.audio.duration) this.progress = (this.audio.currentTime / this.audio.duration) * 100; });
+                    this.audio.addEventListener('ended', () => this.nextSong());
+                    if (window.location.pathname.includes('/anime/')) { this.isPlaying = false; }
+                },
+                playSongFromEvent(event) {
+                    const songId = event.detail.songId;
+                    const index = this.playlist.findIndex(s => s.id === songId);
+                    if (index !== -1) this.playSongAtIndex(index);
+                },
+                playSongAtIndex(index) {
+                    this.currentSongIndex = index;
+                    this.audio.src = this.currentSong.song_url;
+                    this.audio.play();
+                    this.isPlaying = true;
+                },
+                togglePlay() {
+                    if (this.currentSongIndex === -1 && this.playlist.length > 0) { this.playSongAtIndex(0); return; }
+                    if (this.isPlaying) this.audio.pause(); else this.audio.play();
+                    this.isPlaying = !this.isPlaying;
+                },
+                nextSong() {
+                    let nextIndex = this.currentSongIndex + 1;
+                    if (nextIndex >= this.playlist.length) nextIndex = 0;
+                    this.playSongAtIndex(nextIndex);
+                },
+                prevSong() {
+                    let prevIndex = this.currentSongIndex - 1;
+                    if (prevIndex < 0) prevIndex = this.playlist.length - 1;
+                    this.playSongAtIndex(prevIndex);
+                },
+                seek(event) {
+                    const progressBar = event.currentTarget;
+                    const clickPosition = event.offsetX;
+                    const barWidth = progressBar.offsetWidth;
+                    const seekTime = (clickPosition / barWidth) * this.audio.duration;
+                    this.audio.currentTime = seekTime;
+                }
+            }
+        }
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

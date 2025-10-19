@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}{{ anime.title }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4">
+    <div class="aspect-w-16 aspect-h-9 mb-6">
+        <iframe src="{{ get_embed_url(anime.episodes[0].watch_link if anime.episodes else '') }}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen class="w-full h-64 rounded-lg shadow-lg bg-black"></iframe>
+    </div>
+
+    <div class="flex items-start mb-6">
+        <img src="{{ url_for('static', filename=anime.poster_url) }}" alt="{{ anime.title }}" class="w-24 h-36 object-cover rounded-md mr-4">
+        <div>
+            <h1 class="text-2xl font-bold text-white">{{ anime.title }}</h1>
+            <p class="text-gray-400 text-sm mb-2">{{ anime.release_year }} · {{ anime.category.name }}</p>
+            <div class="flex items-center text-yellow-400 mb-4"><i class="fas fa-star"></i><span class="ml-1">{{ anime.rating }}</span></div>
+            <button id="like-anime-btn" data-anime-id="{{ anime.id }}" class="bg-cyan-500 text-white px-4 py-2 rounded-full text-sm">
+                <i class="fas fa-heart"></i> <span>{% if current_user.is_authenticated and anime in current_user.liked_animes %}Liked{% else %}Like{% endif %}</span>
+            </button>
+        </div>
+    </div>
+    <p class="text-gray-300 text-sm mb-8">{{ anime.description }}</p>
+
+    <div class="mb-8">
+        <h2 class="text-xl font-bold text-white mb-4">Episodes</h2>
+        <div class="bg-gray-800 rounded-lg p-2 space-y-2 max-h-96 overflow-y-auto">
+            {% for episode in anime.episodes %}
+            <a href="#" class="flex items-center p-2 rounded-md hover:bg-gray-700">
+                <img src="{{ url_for('static', filename=episode.thumbnail_url) }}" alt="{{ episode.title }}" class="w-32 h-20 object-cover rounded-md mr-4">
+                <h3 class="text-md font-semibold text-white flex-grow">{{ episode.title }}</h3>
+                <i class="fas fa-play-circle text-gray-400 text-2xl"></i>
+            </a>
+            {% else %}
+            <p class="text-gray-400 p-4">No episodes available.</p>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="mb-8">
+        <h2 class="text-xl font-bold text-white mb-4">Comments</h2>
+        <div class="bg-gray-800 rounded-lg p-4">
+            {% if current_user.is_authenticated %}
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+                {{ form.text(class="w-full bg-gray-700 text-white p-2 rounded-md mb-2", placeholder="Add a public comment...") }}
+                {{ form.submit(class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded-md") }}
+            </form>
+            {% else %}
+            <p class="text-gray-400">You must <a href="{{ url_for('main.login') }}" class="text-cyan-400 hover:underline">log in</a> to comment.</p>
+            {% endif %}
+            <hr class="border-gray-700 my-6">
+            <div class="space-y-4">
+                {% for comment in comments %}
+                <div class="flex items-start space-x-3">
+                    <img class="w-10 h-10 rounded-full object-cover" src="{{ url_for('static', filename=comment.author.profile_image) }}">
+                    <div class="flex-1 bg-gray-700 rounded-lg p-3">
+                        <div class="flex items-center justify-between">
+                            <p class="font-semibold text-white">{{ comment.author.username }}</p>
+                            {% if comment.author == current_user %}
+                            <form action="{{ url_for('main.delete_comment', comment_id=comment.id) }}" method="POST">
+                                <button type="submit" class="text-red-500 hover:text-red-700 text-xs"><i class="fas fa-trash"></i></button>
+                            </form>
+                            {% endif %}
+                        </div>
+                        <p class="text-gray-300 text-sm mt-1">{{ comment.text }}</p>
+                    </div>
+                </div>
+                {% else %}<p class="text-gray-400">Be the first to comment!</p>{% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('like-anime-btn').addEventListener('click', function() {
+    fetch(`/like_anime/${this.dataset.animeId}`, { method: 'POST' })
+    .then(res => res.json()).then(data => {
+        this.querySelector('span').textContent = data.status === 'liked' ? 'Liked' : 'Like';
+    }).catch(err => console.error(err));
+});
+</script>
+{% endblock %}

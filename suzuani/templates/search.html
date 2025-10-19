@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Search{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4">
+    <form method="GET" action="{{ url_for('main.search') }}" class="mb-8">
+        <div class="relative">
+            <input type="search" name="q" value="{{ query or '' }}" placeholder="Search Anime, Manga, or Music..." class="w-full bg-gray-800 text-white p-3 pl-10 rounded-full focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-gray-700">
+            <i class="fas fa-search text-gray-400 absolute left-4 top-1/2 -translate-y-1/2"></i>
+        </div>
+    </form>
+
+    {% if query %}
+        <h1 class="text-2xl font-bold text-white mb-6">Results for "{{ query }}"</h1>
+
+        <div class="mb-8">
+            <h2 class="text-xl font-bold text-white mb-4">Music</h2>
+            {% if songs %}
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {% for song in songs %}
+                <div @click="$dispatch('play-song', { songId: {{ song.id }} })" class="bg-gray-800 p-3 rounded-lg shadow-lg cursor-pointer hover:bg-gray-700">
+                    <img src="{{ url_for('static', filename=song.cover_url) }}" alt="{{ song.title }}" class="w-full h-32 sm:h-40 object-cover rounded-md mb-3">
+                    <h3 class="text-sm font-semibold text-white truncate">{{ song.title }}</h3>
+                    <p class="text-xs text-gray-400 truncate">{{ song.artist }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-gray-400">No music found matching your search.</p>
+            {% endif %}
+        </div>
+        <hr class="border-gray-700 my-8">
+
+        <div class="mb-8">
+            <h2 class="text-xl font-bold text-white mb-4">Anime</h2>
+            {% if animes %}
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {% for anime in animes %}
+                <a href="{{ url_for('main.movie_details', anime_id=anime.id) }}">
+                    <div class="bg-gray-800 rounded-lg overflow-hidden shadow-lg h-full">
+                        <img src="{{ url_for('static', filename=anime.poster_url) }}" alt="{{ anime.title }}" class="w-full h-48 sm:h-56 object-cover">
+                        <div class="p-2"><h3 class="text-sm font-semibold text-white truncate">{{ anime.title }}</h3></div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-gray-400">No anime found matching your search.</p>
+            {% endif %}
+        </div>
+
+        <div>
+            <h2 class="text-xl font-bold text-white mb-4">Manga</h2>
+            {% if mangas %}
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {% for manga in mangas %}
+                 <a href="{{ url_for('main.manga_details', manga_id=manga.id) }}">
+                    <div class="bg-gray-800 rounded-lg overflow-hidden shadow-lg h-full">
+                        <img src="{{ url_for('static', filename=manga.poster_url) }}" alt="{{ manga.title }}" class="w-full h-48 sm:h-56 object-cover">
+                        <div class="p-2"><h3 class="text-sm font-semibold text-white truncate">{{ manga.title }}</h3></div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-gray-400">No manga found matching your search.</p>
+            {% endif %}
+        </div>
+    {% else %}
+        <p class="text-gray-400 text-center">Start typing to search the SuzuAni library.</p>
+    {% endif %}
+</div>
+{% endblock %}

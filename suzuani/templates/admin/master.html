@@ -1,0 +1,29 @@
+{% extends 'admin/base.html' %}
+{% block head_css %}
+  {{ super() }}
+  <style>
+    body { background-color: #0d1117; color: #c9d1d9; }
+    .navbar-inverse { background-color: #161b22; border-color: #30363d; }
+    .navbar-inverse .navbar-brand { color: #58a6ff; }
+    .navbar-inverse .navbar-nav > li > a { color: #c9d1d9; }
+    .table-striped > tbody > tr:nth-of-type(odd) { background-color: #161b22; }
+    .table > thead > tr > th, .table > tbody > tr > th, .table > tfoot > tr > th,
+    .table > thead > tr > td, .table > tbody > tr > td, .table > tfoot > tr > td { border-top: 1px solid #30363d; }
+    .form-control { background-color: #0d1117; border-color: #30363d; color: #c9d1d9; }
+    .modal-content { background-color: #161b22; }
+    .nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus { background-color: #0d1117; border-color: #30363d; }
+    .list-group-item { background-color: #161b22; border: 1px solid #30363d; }
+    a { color: #58a6ff; }
+  </style>
+{% endblock %}
+{% block brand %}
+  <a class="navbar-brand" href="{{ url_for('admin.index') }}">SuzuAni Admin</a>
+{% endblock %}
+{% block nav_links %}
+  {{ super() }}
+  <ul class="nav navbar-nav navbar-right">
+      <li>
+          <a href="/"><span class="glyphicon glyphicon-log-out"></span> Back to Main Site</a>
+      </li>
+  </ul>
+{% endblock %}```

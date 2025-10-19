@@ -1,0 +1,7 @@
+import suzuani.monkey_patch
+from suzuani import create_app
+
+app = create_app()
+
+if __name__ == '__main__':
+    app.run(debug=True)

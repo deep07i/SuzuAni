@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Liked Content{% endblock %}
+{% block content %}
+<div class="container mx-auto px-4">
+    <h1 class="text-3xl font-bold text-white mb-6">Your Liked Content</h1>
+    <div class="mb-12">
+        <h2 class="text-2xl font-bold text-white mb-4">Liked Anime</h2>
+        {% if current_user.liked_animes %}
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {% for anime in current_user.liked_animes %}
+            <a href="{{ url_for('main.movie_details', anime_id=anime.id) }}">
+                <div class="bg-gray-800 rounded-lg overflow-hidden shadow-lg h-full">
+                    <img src="{{ url_for('static', filename=anime.poster_url) }}" alt="{{ anime.title }}" class="w-full h-48 sm:h-56 object-cover">
+                    <div class="p-2"><h3 class="text-sm font-semibold text-white truncate">{{ anime.title }}</h3></div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-gray-400">You have not liked any anime yet.</p>
+        {% endif %}
+    </div>
+    <div>
+        <h2 class="text-2xl font-bold text-white mb-4">Liked Manga</h2>
+        {% if current_user.liked_mangas %}
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {% for manga in current_user.liked_mangas %}
+             <a href="{{ url_for('main.manga_details', manga_id=manga.id) }}">
+                <div class="bg-gray-800 rounded-lg overflow-hidden shadow-lg h-full">
+                    <img src="{{ url_for('static', filename=manga.poster_url) }}" alt="{{ manga.title }}" class="w-full h-48 sm:h-56 object-cover">
+                    <div class="p-2"><h3 class="text-sm font-semibold text-white truncate">{{ manga.title }}</h3></div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-gray-400">You have not liked any manga yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
